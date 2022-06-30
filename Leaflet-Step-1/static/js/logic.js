@@ -28,7 +28,7 @@ d3.json(queryUrl).then(function (data) {
 
     var earthquakes = L.geoJSON
     (
-      earthquakeData, 
+      earthquakeData,//.filter(e => e.properties.mag < 1), 
       {
         pointToLayer: function (feature, latlng) 
           {
@@ -39,14 +39,16 @@ d3.json(queryUrl).then(function (data) {
 
 
     function geojsonMarkerOptions(feature) {
-      console.log(feature.geometry.coordinates[2]);
+
+      // console.log(feature.geometry.coordinates[2]);
+
       return {      
         radius: feature.properties.mag *5,
         fillColor: getColor(feature.geometry.coordinates[2]),
         color: "#000",
         weight: 1,
         opacity: 1,
-        fillOpacity: 0.8
+        fillOpacity: 0.6
       }
   };
   
@@ -66,6 +68,7 @@ d3.json(queryUrl).then(function (data) {
            d > 0    ? '#99D492' :
                       '#DEEDCF';
   }
+
 
 
 
@@ -104,11 +107,10 @@ d3.json(queryUrl).then(function (data) {
     // Create a layer control.
     // Pass it our baseMaps and overlayMaps.
     // Add the layer control to the map.
-    L.control.layers(baseMaps, overlayMaps, {
-      collapsed: false
-    }).addTo(myMap);
+    
+    
+
+
   
   }
-  
-//   d3.geojson("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson").then(createMarkers);
   
