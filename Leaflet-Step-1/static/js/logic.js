@@ -14,8 +14,13 @@ d3.json(queryUrl).then(function (data) {
     // Define a function that we want to run once for each feature in the features array.
     // Give each feature a popup that describes the place and time of the earthquake.
     function onEachFeature(feature, layer) {
-      layer.bindPopup(`<h3>${feature.properties.place}</h3><hr><p>${new Date(feature.properties.time)}</p>`);
-      
+      layer.bindPopup(`<h3>${feature.properties.place}</h3><hr>
+                      <strong>Depth: ${feature.geometry.coordinates[2]} km</strong><br>
+                      Magnitude: ${feature.properties.mag}<br>
+                      <h6>${new Date(feature.properties.time)}</h6>`)
+      // layer.bindPopup(`<h2>Depth: ${feature.geometry.coordinates[2]} km</h2><br>Magnitude: ${feature.properties.mag}`)
+
+      // layer.bindPopup('<h2> Greetings </h2>');
     }
   
     // Create a GeoJSON layer that contains the features array on the earthquakeData object.
@@ -33,9 +38,12 @@ d3.json(queryUrl).then(function (data) {
         pointToLayer: function (feature, latlng) 
           {
           return L.circleMarker(latlng, geojsonMarkerOptions(feature));
-          }
+          },
+          onEachFeature: onEachFeature
       }
     );
+
+
 
 
     function geojsonMarkerOptions(feature) {
@@ -48,7 +56,7 @@ d3.json(queryUrl).then(function (data) {
         color: "#000",
         weight: 1,
         opacity: 1,
-        fillOpacity: 0.6
+        fillOpacity: 0.8
       }
   };
   
@@ -57,20 +65,22 @@ d3.json(queryUrl).then(function (data) {
   }
 
 
-  
+
+  // depth colors.  When combined with depths list, it generalizes the colors so the legend automatically
+  // matches marker colors.
+
   function getColor(d) {
-    return d > 30   ? '#0A2F51' :
-           d > 20   ? '#0F596B' :
-           d > 15   ? '#16837A' :
-           d > 10   ? '#1D9A6C' :
-           d > 5    ? '#56B870' :
-           d > 2.5  ? '#99D492' :
-           d > 0    ? '#99D492' :
-                      '#DEEDCF';
+    return d > depths[0]    ? '#ffff43' :
+           d > depths[1]    ? '#f6d928' :
+           d > depths[2]    ? '#e9b311' :
+           d > depths[3]    ? '#d78f02' :
+           d > depths[4]    ? '#c26d00' :
+           d > depths[5]    ? '#a94c03' :
+           d > depths[6]    ? '#8e2b05' :
+                              '#710301';
   }
 
-
-
+  var depths = [30, 20, 15, 10, 5, 2.5, 0];
 
 
   function createMap(earthquakes) {
@@ -107,7 +117,39 @@ d3.json(queryUrl).then(function (data) {
     // Create a layer control.
     // Pass it our baseMaps and overlayMaps.
     // Add the layer control to the map.
-    
+
+
+    L.control.layers(baseMaps, overlayMaps, {collapsed:false}).addTo(myMap);
+
+    // create legend
+
+    let legend = L.control({position: 'bottomright'});
+
+    legend.onAdd = function (map) {
+      let legendDiv =  L.DomUtil.create('div', 'info legend'),
+        checkins = [`> ${depths[0]}`,
+                     `${depths[1]} - ${depths[0]}`,
+                     `${depths[2]} - ${depths[1]}`,
+                     `${depths[3]} - ${depths[2]}`,
+                     `${depths[4]} - ${depths[3]}`,
+                     `${depths[5]} - ${depths[4]}`,
+                     `${depths[6]} - ${depths[5]}`,
+                     `< ${depths[6]}`]
+                     ;
+                     
+        title= ['<strong>Marker Color Codes</strong>'],
+        labels = ['<img style="width:50%"src="static/images/Earthquake_House_Icons.svg"><br>Depth (km) of <br>Earthquake <hr>']
+      for (  i=0; i < checkins.length; i++) {
+          labels.push( 
+              '<i class="square" style="background:' + getColor(depths[i]) + '"></i>'+ checkins[i] + '')
+      }
+      legendDiv.innerHTML = labels.join('<br>');
+
+
+      return legendDiv;
+  }
+
+  legend.addTo(myMap);
     
 
 
